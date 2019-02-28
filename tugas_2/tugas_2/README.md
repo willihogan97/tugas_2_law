@@ -1,1 +1,0 @@
-# tugas_2_law
