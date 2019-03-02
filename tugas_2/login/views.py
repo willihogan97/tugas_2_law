@@ -16,23 +16,15 @@ class loginMethod :
 	    body = json.loads(body_unicode)
 	    username = body['username']
 	    password = body['password']
-	    search_user = list(User.objects.filter(displayName=username))
-	    if len(search_user) != 0 :
-	    	url = "https://oauth.infralabs.cs.ui.ac.id/oauth/token"
-	    	data = {"username": "1506725003", "password": password, "grant_type": "password", "client_id": "nCpJE0ZFYp7YMlyVok0ughAPQgFlfk2w", "client_secret": "J7QOAJ1To5Rjt4S7tOeBwKNyY0Eb6RLI"}
-	    	r = requests.post(url, data = data)
-	    	if r.status_code == 401 :
-	    		return JsonResponse({"status" : "error", "description": "Unauthorized"}, status=401)
-	    	else :
-	    		json_data = r.json()
-	    		search_user[0].accessToken = json_data['access_token']
-	    		search_user[0].save()
-	    		return JsonResponse({
-			    	"status" : "ok", 
-			    	"token" : json_data['access_token']
-			    })
+	    url = "https://oauth.infralabs.cs.ui.ac.id/oauth/token"
+	    data = {"username": username, "password": password, "grant_type": "password", "client_id": "nCpJE0ZFYp7YMlyVok0ughAPQgFlfk2w", "client_secret": "J7QOAJ1To5Rjt4S7tOeBwKNyY0Eb6RLI"}
+	    r = requests.post(url, data = data)
+	    if r.status_code == 401 :
+	    	return JsonResponse({"status" : "error", "description": "Unauthorized wrong username or password"}, status=401)
 	    else :
+	    	json_data = r.json()
+	    	request.session['access_token'] = json_data['access_token']
 	    	return JsonResponse({
-		    	"status" : "error", 
-		    	"token" : "No Username"
+				"status" : "ok", 
+				"token" : json_data['access_token']
 		    })
