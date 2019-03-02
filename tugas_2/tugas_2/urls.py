@@ -15,9 +15,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.conf.urls import url
-from . import view
+from django.conf import settings
+from login.views import loginMethod
+from users.views import usersMethod
+from comment.views import commentMethod
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^', view.add)
+    url(r'^login', loginMethod.login),
+    url(r'^user/register', usersMethod.register),
+    url(r'^user/getUsers', usersMethod.getUsers),
+    url(r'^comment/createComment', commentMethod.create),
+	url(r'^comment/getCommentById', commentMethod.getById),
+    url(r'^comment/getComment', commentMethod.getAll),
+    url(r'^comment/deleteComment', commentMethod.delete),
+    url(r'^comment/updateComment', commentMethod.update),
 ]
