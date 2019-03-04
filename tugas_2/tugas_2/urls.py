@@ -22,11 +22,11 @@ from comment.views import commentMethod
 
 urlpatterns = [
     url(r'^login', loginMethod.login),
-    url(r'^user/register', usersMethod.register),
-    url(r'^user/getUsers', usersMethod.getUsers),
-    url(r'^comment/createComment', commentMethod.create),
-	url(r'^comment/getCommentById', commentMethod.getById),
-    url(r'^comment/getComment', commentMethod.getAll),
-    url(r'^comment/deleteComment', commentMethod.delete),
-    url(r'^comment/updateComment', commentMethod.update),
+    url(r'^users/register', usersMethod.register),
+    url(r'^users/getUsers', usersMethod.getUsers),
+    url(r'^comments/createComment', commentMethod.create),
+	url(r'^comments/getCommentById', commentMethod.getById),
+    url(r'^comments/getComment', commentMethod.getAll),
+    url(r'^comments/deleteComment', commentMethod.delete),
+    url(r'^comments/updateComment', commentMethod.update),
 ]

@@ -13,33 +13,35 @@ import requests
 class commentMethod :
 	@csrf_exempt
 	def create(request):
-	  if request.method == 'POST':
-	    body_unicode = request.body.decode('utf-8')
-	    body = json.loads(body_unicode)
-	    comment = body['comment']
-	    url = "https://oauth.infralabs.cs.ui.ac.id/oauth/resource"
-	    access_token = request.session['access_token']
-	    headers = {"Authorization": "Bearer " + access_token}
-	    r = requests.get(url, headers=headers)
-	    if r.status_code != 401 :
-	    	search_user = list(User.objects.filter(userId=r.json()['user_id']))
-	    	if len(search_user) != 0 :
-			    newComment = Comment(comment=comment, createdBy=search_user[0].displayName, createdAt=datetime.now(), updatedAt=datetime.now())
-			    newComment.save()
-			    return JsonResponse({
-			    	"status" : "ok", 
-			    	"data": {
-				    	"id" : newComment.id, 
-				    	"comment" : newComment.comment, 
-				    	"createdBy": newComment.createdBy, 
-				    	"createdAt": newComment.createdAt, 
-				    	"updatedAt": newComment.updatedAt
-			    	}
-			    })
-	    	else :
-		    	return JsonResponse({"status" : "error", "description": "You haven't registered"})
-	    else :
-	    	return JsonResponse({"status" : "error", "description": "Unauthorized"}, status=401)
+	  	if request.method == 'POST':
+		    body_unicode = request.body.decode('utf-8')
+		    body = json.loads(body_unicode)
+		    comment = body['comment']
+		    url = "https://oauth.infralabs.cs.ui.ac.id/oauth/resource"
+		    access_token = request.session['access_token']
+		    headers = {"Authorization": "Bearer " + access_token}
+		    r = requests.get(url, headers=headers)
+		    if r.status_code != 401 :
+		    	search_user = list(User.objects.filter(userId=r.json()['user_id']))
+		    	if len(search_user) != 0 :
+				    newComment = Comment(comment=comment, createdBy=search_user[0].displayName, createdAt=datetime.now(), updatedAt=datetime.now())
+				    newComment.save()
+				    return JsonResponse({
+				    	"status" : "ok", 
+				    	"data": {
+					    	"id" : newComment.id, 
+					    	"comment" : newComment.comment, 
+					    	"createdBy": newComment.createdBy, 
+					    	"createdAt": newComment.createdAt, 
+					    	"updatedAt": newComment.updatedAt
+				    	}
+				    })
+		    	else :
+			    	return JsonResponse({"status" : "error", "description": "You haven't registered"})
+		    else :
+		    	return JsonResponse({"status" : "error", "description": "Unauthorized"}, status=401)
+	  	else :
+	  		return JsonResponse({"status" : "error", "description": "Method not allowed"})
 	    
 	@csrf_exempt
 	def delete(request):
@@ -67,6 +69,8 @@ class commentMethod :
 	  				return JsonResponse({"status" : "error", "description": "You haven't registered"})
 	  		else :
 	  			return JsonResponse({"status" : "error", "description": "Unauthorized"}, status=401)
+	  	else :
+	  		return JsonResponse({"status" : "error", "description": "Method not allowed"})
 	    
 	@csrf_exempt
 	def update(request):
@@ -82,9 +86,9 @@ class commentMethod :
 		    	search_user = list(User.objects.filter(userId=r.json()['user_id']))
 		    	if len(search_user) != 0 :
 		    		comment_list = list(Comment.objects.filter(id=id))
-		    		if search_user[0].displayName == comment_list[0].createdBy :
-		    			newComment = body['comment']
-		    			if (len(comment_list) != 0) :
+		    		if (len(comment_list) != 0) :
+			    		if search_user[0].displayName == comment_list[0].createdBy :
+			    			newComment = body['comment']
 		    				comment_list[0].comment = newComment
 		    				comment_list[0].updatedAt = datetime.now()
 		    				comment_list[0].save()
@@ -98,14 +102,16 @@ class commentMethod :
 								 	"updatedAt": comment_list[0].updatedAt
 								}
 							})
-		    			else :
-		    				return JsonResponse({"status" : "error", "description": "Id Not Found"})
-		    		else :
-		    			return JsonResponse({"status" : "error", "description": "You're not authorize to update others comment"})
+			    		else :
+			    			return JsonResponse({"status" : "error", "description": "You're not authorize to update others comment"})
+	    			else :
+	    				return JsonResponse({"status" : "error", "description": "Id Not Found"})
 		    	else :
 		    		return JsonResponse({"status" : "error", "description": "You haven't registered"})
 		    else :
 		    	return JsonResponse({"status" : "error", "description": "Unauthorized"}, status=401)
+	  	else :
+	  		return JsonResponse({"status" : "error", "description": "Method not allowed"})
 
 	@csrf_exempt
 	def getById(request):
@@ -125,6 +131,8 @@ class commentMethod :
 				    })
 		  	else :
 		  		return JsonResponse({"status" : "error", "description": "Id Not Found"})
+	  	else :
+	  		return JsonResponse({"status" : "error", "description": "Method not allowed"})
 	    
 	@csrf_exempt
 	def getAll(request):
@@ -166,4 +174,6 @@ class commentMethod :
 			  		return JsonResponse({"status" : "error", "description": "Page exceeded the limit"})
 		  	else :
 		  		return JsonResponse({"status" : "error", "description": "Comment not found in the time range or createdBy fields"})
+	  	else :
+	  		return JsonResponse({"status" : "error", "description": "Method not allowed"})
 	    
