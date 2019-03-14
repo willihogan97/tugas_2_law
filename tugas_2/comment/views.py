@@ -18,27 +18,33 @@ class commentMethod :
 		    body = json.loads(body_unicode)
 		    comment = body['comment']
 		    url = "https://oauth.infralabs.cs.ui.ac.id/oauth/resource"
-		    if 'access_token' in request.session:
-			    access_token = request.session['access_token']
-			    headers = {"Authorization": "Bearer " + access_token}
-			    r = requests.get(url, headers=headers)
-			    if r.status_code != 401 :
-			    	search_user = list(User.objects.filter(userId=r.json()['user_id']))
-			    	if len(search_user) != 0 :
-					    newComment = Comment(comment=comment, createdBy=search_user[0].displayName, createdAt=datetime.now(), updatedAt=datetime.now())
-					    newComment.save()
-					    return JsonResponse({
-					    	"status" : "ok", 
-					    	"data": {
-						    	"id" : newComment.id, 
-						    	"comment" : newComment.comment, 
-						    	"createdBy": newComment.createdBy, 
-						    	"createdAt": newComment.createdAt, 
-						    	"updatedAt": newComment.updatedAt
-					    	}
-					    })
-			    	else :
-				    	return JsonResponse({"status" : "error", "description": "You haven't registered"})
+		    if 'HTTP_AUTHORIZATION' in request.META:
+			    if 'username' in request.session:
+				    access_token = request.META['HTTP_AUTHORIZATION']
+				    headers = {"Authorization": access_token}
+				    r = requests.get(url, headers=headers)
+				    if r.status_code != 401 :
+				    	if request.session['username'] == r.json()['user_id']:
+					    	search_user = list(User.objects.filter(userName=r.json()['user_id']))
+					    	if len(search_user) != 0 :
+							    newComment = Comment(comment=comment, userName=r.json()['user_id'], createdBy=search_user[0].displayName, createdAt=datetime.now(), updatedAt=datetime.now())
+							    newComment.save()
+							    return JsonResponse({
+							    	"status" : "ok", 
+							    	"data": {
+								    	"id" : newComment.id, 
+								    	"comment" : newComment.comment, 
+								    	"createdBy": newComment.createdBy, 
+								    	"createdAt": newComment.createdAt, 
+								    	"updatedAt": newComment.updatedAt
+							    	}
+							    })
+					    	else :
+						    	return JsonResponse({"status" : "error", "description": "You haven't registered"})
+				    	else :
+					    	return JsonResponse({"status" : "error", "description": "You are not authorize to create with other user id"})
+				    else :
+				    	return JsonResponse({"status" : "error", "description": "Unauthorized please login again"}, status=401)
 			    else :
 			    	return JsonResponse({"status" : "error", "description": "Unauthorized please login first"}, status=401)
 		    else :
@@ -53,24 +59,28 @@ class commentMethod :
 	  		body = json.loads(body_unicode)
 	  		id = body['id']
 	  		url = "https://oauth.infralabs.cs.ui.ac.id/oauth/resource"
-	  		if 'access_token' in request.session:
-		  		access_token = request.session['access_token']
-		  		headers = {"Authorization": "Bearer " + access_token}
-		  		r = requests.get(url, headers=headers)
-		  		if r.status_code != 401 :
-		  			search_user = list(User.objects.filter(userId=r.json()['user_id']))
-		  			if len(search_user) != 0 :
-		  				comment_list = list(Comment.objects.filter(id=id))
-		  				if len(comment_list) != 0 :
-		  					if search_user[0].displayName == comment_list[0].createdBy :
-		  						Comment.objects.filter(id=id).delete()
-		  						return JsonResponse({"status" : "ok"})
-		  					else :
-		  						return JsonResponse({"status" : "error", "description": "You're not authorize to delete others comment"})
-		  				else :
-		  					return JsonResponse({"status" : "error", "description": "Id Not Found"})
-		  			else :
-		  				return JsonResponse({"status" : "error", "description": "You haven't registered"})
+	  		if 'HTTP_AUTHORIZATION' in request.META:
+		  		if 'username' in request.session:
+			  		access_token = request.META['HTTP_AUTHORIZATION']
+			  		headers = {"Authorization": access_token}
+			  		r = requests.get(url, headers=headers)
+			  		if r.status_code != 401 :
+			  			search_user = list(User.objects.filter(userName=r.json()['user_id']))
+			  			if len(search_user) != 0 :
+			  				comment_list = list(Comment.objects.filter(id=id))
+			  				if len(comment_list) != 0 :
+			  					if request.session['username'] == r.json()['user_id'] and search_user[0].userName == comment_list[0].userName:
+			  					# if search_user[0].userName == comment_list[0].userName :
+			  						Comment.objects.filter(id=id).delete()
+			  						return JsonResponse({"status" : "ok"})
+			  					else :
+			  						return JsonResponse({"status" : "error", "description": "You're not authorize to delete others comment"})
+			  				else :
+			  					return JsonResponse({"status" : "error", "description": "Id Not Found"})
+			  			else :
+			  				return JsonResponse({"status" : "error", "description": "You haven't registered"})
+			  		else :
+			  			return JsonResponse({"status" : "error", "description": "Unauthorized please login again"}, status=401)
 		  		else :
 		  			return JsonResponse({"status" : "error", "description": "Unauthorized please login first"}, status=401)
 	  		else :
@@ -85,36 +95,39 @@ class commentMethod :
 		    body = json.loads(body_unicode)
 		    id = body['id']
 		    url = "https://oauth.infralabs.cs.ui.ac.id/oauth/resource"
-		    if 'access_token' in request.session:
-			    access_token = request.session['access_token']
-			    headers = {"Authorization": "Bearer " + access_token}
-			    r = requests.get(url, headers=headers)
-			    if r.status_code != 401 :
-			    	search_user = list(User.objects.filter(userId=r.json()['user_id']))
-			    	if len(search_user) != 0 :
-			    		comment_list = list(Comment.objects.filter(id=id))
-			    		if (len(comment_list) != 0) :
-				    		if search_user[0].displayName == comment_list[0].createdBy :
-				    			newComment = body['comment']
-			    				comment_list[0].comment = newComment
-			    				comment_list[0].updatedAt = datetime.now()
-			    				comment_list[0].save()
-			    				return JsonResponse({
-						    		"status" : "ok", 
-						    		"data": {
-						    			"id" : comment_list[0].id, 
-										"comment" : comment_list[0].comment, 
-										"createdBy": comment_list[0].createdBy, 
-										"createdAt": comment_list[0].createdAt, 
-									 	"updatedAt": comment_list[0].updatedAt
-									}
-								})
-				    		else :
-				    			return JsonResponse({"status" : "error", "description": "You're not authorize to update others comment"})
-		    			else :
-		    				return JsonResponse({"status" : "error", "description": "Id Not Found"})
-			    	else :
-			    		return JsonResponse({"status" : "error", "description": "You haven't registered"})
+		    if 'HTTP_AUTHORIZATION' in request.META:
+			    if 'username' in request.session:
+				    access_token = request.META['HTTP_AUTHORIZATION']
+				    headers = {"Authorization": access_token}
+				    r = requests.get(url, headers=headers)
+				    if r.status_code != 401 :
+				    	search_user = list(User.objects.filter(userName=r.json()['user_id']))
+				    	if len(search_user) != 0 :
+				    		comment_list = list(Comment.objects.filter(id=id))
+				    		if (len(comment_list) != 0) :
+				    			if request.session['username'] == r.json()['user_id'] and search_user[0].userName == comment_list[0].userName :
+					    			newComment = body['comment']
+				    				comment_list[0].comment = newComment
+				    				comment_list[0].updatedAt = datetime.now()
+				    				comment_list[0].save()
+				    				return JsonResponse({
+							    		"status" : "ok", 
+							    		"data": {
+							    			"id" : comment_list[0].id, 
+											"comment" : comment_list[0].comment, 
+											"createdBy": comment_list[0].createdBy, 
+											"createdAt": comment_list[0].createdAt, 
+										 	"updatedAt": comment_list[0].updatedAt
+										}
+									})
+					    		else :
+					    			return JsonResponse({"status" : "error", "description": "You're not authorize to update others comment"})
+			    			else :
+			    				return JsonResponse({"status" : "error", "description": "Id Not Found"})
+				    	else :
+				    		return JsonResponse({"status" : "error", "description": "You haven't registered"})
+				    else :
+				    	return JsonResponse({"status" : "error", "description": "Unauthorized please login again"}, status=401)
 			    else :
 			    	return JsonResponse({"status" : "error", "description": "Unauthorized please login first"}, status=401)
 		    else :
@@ -153,11 +166,12 @@ class commentMethod :
 		  	endDate = request.GET.get('endDate')
 		  	startDateArr = startDate.split("-")
 		  	endDateArr = endDate.split("-")
-		  	timeNow = time(0, 0)
+		  	timeStart = time(0, 0)
+		  	timeEnd = time (12, 0)
 		  	dateStart = date(int(startDateArr[0]), int(startDateArr[1]), int(startDateArr[2]))
 		  	dateEnd = date(int(endDateArr[0]), int(endDateArr[1]), int(endDateArr[2]))
-		  	datetimeStart = datetime.combine(dateStart, timeNow)
-		  	datetimeEnd = datetime.combine(dateEnd, timeNow)
+		  	datetimeStart = datetime.combine(dateStart, timeStart)
+		  	datetimeEnd = datetime.combine(dateEnd, timeEnd)
 		  	comment_list = list(Comment.objects.filter(updatedAt__lte=datetimeEnd, updatedAt__gte=datetimeStart, createdBy=createdBy))
 		  	if len(comment_list) != 0 :
 		  		data = []

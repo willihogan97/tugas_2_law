@@ -23,7 +23,7 @@ class loginMethod :
 		    	return JsonResponse({"status" : "error", "description": "Unauthorized wrong username or password"}, status=401)
 		    else :
 		    	json_data = r.json()
-		    	request.session['access_token'] = json_data['access_token']
+		    	request.session['username'] = username
 		    	return JsonResponse({
 					"status" : "ok", 
 					"token" : json_data['access_token']

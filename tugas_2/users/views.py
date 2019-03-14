@@ -16,31 +16,24 @@ class usersMethod :
 			body = json.loads(body_unicode)
 			displayName = body['displayName']
 			url = "https://oauth.infralabs.cs.ui.ac.id/oauth/resource"
-			if 'access_token' in request.session:
-				access_token = request.session['access_token']
-				headers = {"Authorization": "Bearer " + access_token}
+			if 'HTTP_AUTHORIZATION' in request.META:
+				access_token = request.META['HTTP_AUTHORIZATION']
+				headers = {"Authorization": access_token}
 				r = requests.get(url, headers=headers)
 				if r.status_code != 401 :
-					search_user = list(User.objects.filter(displayName=displayName))
-					if len(search_user) == 0 :
-						search_user_id = list(User.objects.filter(userId=r.json()['user_id']))
-						if len(search_user_id) == 0 :
-							newUser = User(userId=r.json()['user_id'], displayName=displayName)
-							newUser.save()
-							return JsonResponse({
-								"status" : "ok", 
-								"userId" : newUser.userId, 
-								"displayName" : newUser.displayName
-						    })
-						else :
-							return JsonResponse({
-								"status" : "error",
-								"description": "You've already registered under username " + search_user_id[0].displayName
-						    })
+					search_user_id = list(User.objects.filter(userName=r.json()['user_id']))
+					if len(search_user_id) == 0 :
+						newUser = User(userName=r.json()['user_id'], displayName=displayName)
+						newUser.save()
+						return JsonResponse({
+							"status" : "ok", 
+							"userId" : newUser.userId, 
+							"displayName" : newUser.displayName
+					    })
 					else :
 						return JsonResponse({
-					    	"status" : "error", 
-					    	"description" : "User already exist"
+							"status" : "error",
+							"description": "You've already registered under displayName " + search_user_id[0].displayName
 					    })
 				else :
 					return JsonResponse({"status" : "error", "description": "Unauthorized please login first"}, status=401)
@@ -53,9 +46,9 @@ class usersMethod :
 	def getUsers(request):
 	  	if request.method == 'GET':
 	  		url = "https://oauth.infralabs.cs.ui.ac.id/oauth/resource"
-	  		if 'access_token' in request.session:
-		  		access_token = request.session['access_token']
-		  		headers = {"Authorization": "Bearer " + access_token}
+	  		if 'HTTP_AUTHORIZATION' in request.META:
+		  		access_token = request.META['HTTP_AUTHORIZATION']
+		  		headers = {"Authorization": access_token}
 		  		r = requests.get(url, headers=headers)
 		  		if r.status_code != 401 :
 		  			page = int(request.GET.get('page'))
@@ -81,7 +74,7 @@ class usersMethod :
 		  				else :
 		  					return JsonResponse({"status" : "error", "description": "Page exceeded the limit"})
 		  			else :
-		  				return JsonResponse({"status" : "error", "description": "Comment not found in the time range or createdBy fields"})
+		  				return JsonResponse({"status" : "error", "description": "Users not found in the time range or createdBy fields"})
 		  		else : 
 		  			return JsonResponse({"status" : "error", "description": "Unauthorized please login first"}, status=401)
 		  	else :
